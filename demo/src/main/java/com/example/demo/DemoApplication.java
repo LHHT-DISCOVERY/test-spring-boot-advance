@@ -39,15 +39,15 @@ public class DemoApplication {
 //    @Override
 //    public void run(String... args) throws Exception {
 //        roleService.saveOrUpdate(Role.builder().id(1).name("admin").build());
-//        roleService.saveOrUpdate(Role.builder().id(2).name("user").build());
-//
-//        User user1 = new User();
-//        user1.setEmail("test@user.com");
-//        user1.setName("Test User");
-//        user1.setMobile("9787456545");
+//        roleServ787456545");
 //        user1.setRole(roleService.findById(2).get());
 //        user1.setPassword(new BCryptPasswordEncoder().encode("testuser"));
-//        userService.saveOrUpdate(user1);
+//        userService.saveOrUpice.saveOrUpdate(Role.builder().id(2).name("user").build());
+////
+////        User user1 = new User();
+////        user1.setEmail("test@user.com");
+////        user1.setName("Test User");
+////        user1.setMobile("9date(user1);
 //
 //        User user2 = new User();
 //        user2.setEmail("test@admin.com");
