@@ -39,15 +39,15 @@ public class DemoApplication {
 //    @Override
 //    public void run(String... args) throws Exception {
 //        roleService.saveOrUpdate(Role.builder().id(1).name("admin").build());
-//        roleServ787456545");
+//        roleService.saveOrUpdate(Role.builder().id(2).name("user").build());
+//
+//        User user1 = new User();
+//        user1.setEmail("test@user.com");
+//        user1.setName("Test User");
+//        user1.setMobile("9787456545");
 //        user1.setRole(roleService.findById(2).get());
 //        user1.setPassword(new BCryptPasswordEncoder().encode("testuser"));
-//        userService.saveOrUpice.saveOrUpdate(Role.builder().id(2).name("user").build());
-////
-////        User user1 = new User();
-////        user1.setEmail("test@user.com");
-////        user1.setName("Test User");
-////        user1.setMobile("9date(user1);
+//        userService.saveOrUpdate(user1);
 //
 //        User user2 = new User();
 //        user2.setEmail("test@admin.com");
@@ -67,4 +67,7 @@ public class DemoApplication {
 //        bookService.saveOrUpdate(book);
 //    }//..,,.op2,op3,tro,tri2,test2-commit-first
 //(())
+//    tri_1
+//    }
+
 }
