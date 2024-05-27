@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.controller;
 
 import com.example.demo.common.event_tracking.AuditEventType;
 import com.example.demo.common.event_tracking.AuditLogger;
@@ -16,6 +16,6 @@ public class TestController {
     public String test() throws InterruptedException {
         LOGGER.info("Info log message");
         AuditLogger.info("USER", AuditEventType.TEST_THU, AuditStatus.SUCCESS, "call API /index");
-        return "Hello CHị tưởng";
+        return "Hello CHị tưởng 1";
     }
 }
