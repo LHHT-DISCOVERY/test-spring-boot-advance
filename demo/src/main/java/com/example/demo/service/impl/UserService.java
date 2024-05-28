@@ -4,6 +4,8 @@ import com.example.demo.dto.request.UserCreateRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.User;
+import com.example.demo.exception.AppException;
+import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.IServiceCRUD;
@@ -31,13 +33,13 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
 
     @Override
     public User findById(String id) {
-        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User Not Found"));
+        return userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
     public UserResponse createEntity(UserCreateRequest usercreateRequest) {
 
         if (userRepository.existsByUsername(usercreateRequest.getUsername()))
-            throw new RuntimeException("User Exists !");
+            throw new AppException(ErrorCode.USER_EXIST);
         User user = userMapper.toUser(usercreateRequest);
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -50,7 +52,7 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
             userRepository.deleteById(id);
             jsonObject.put("message", "delete successfully");
         } catch (JSONException e) {
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.JSON_EXCEPTION);
         }
         return jsonObject.toString();
     }
