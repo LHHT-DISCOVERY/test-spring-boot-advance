@@ -13,12 +13,6 @@ import java.net.UnknownHostException;
 
 @SpringBootApplication
 public class DemoApplication {
-//    @Autowired
-//    private IService<Book> bookService;
-//    @Autowired
-//    private IService<Role> roleService;
-//    @Autowired
-//    private IService<User> userService;
 
     private static final Logger log = LoggerFactory.getLogger(DemoApplication.class);
 
