@@ -60,6 +60,7 @@ public class AuthenticationService {
         boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword());
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+//        authenticate ok => generate token
         var token = generateToken(authenticationRequest.getUsername());
         return AuthenticationResponse.builder().token(token).authenticated(true).build();
     }
