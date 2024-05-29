@@ -8,9 +8,11 @@ import com.example.demo.entity.User;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.service.impl.UserService;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -18,14 +20,16 @@ import java.util.Collection;
 
 @RestController
 @RequestMapping("/v1/users")
+//DI bằng constructor
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
-    @Autowired
-    private UserService userService;
+    UserService userService;
 
-    @Autowired
-    private UserMapper userMapper;
+
+    UserMapper userMapper;
 
     @PostMapping("/create")
     ApiResponse<UserResponse> createUser(@Valid @RequestBody UserCreateRequest usercreateRequest) {

@@ -9,21 +9,28 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.IServiceCRUD;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Optional;
 
 @Service
+//DI bằng constructor
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService implements IServiceCRUD<User, UserCreateRequest, UserResponse> {
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private UserMapper userMapper;
+    UserRepository userRepository;
+
+
+    UserMapper userMapper;
 
 
     @Override
@@ -41,6 +48,9 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         if (userRepository.existsByUsername(usercreateRequest.getUsername()))
             throw new AppException(ErrorCode.USER_EXIST);
         User user = userMapper.toUser(usercreateRequest);
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
+        user.setPassword(passwordEncoder.encode(usercreateRequest.getPassword()));
+
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
