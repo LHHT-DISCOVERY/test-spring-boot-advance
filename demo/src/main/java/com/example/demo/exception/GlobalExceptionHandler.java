@@ -1,7 +1,6 @@
 package com.example.demo.exception;
 
 import com.example.demo.dto.response.ApiResponse;
-import org.codehaus.jettison.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;

@@ -10,7 +10,8 @@ public enum ErrorCode {
     USERNAME_INVALID(1003, "Username must be at least five character"),
     PASSWORD_INVALID(1004, "Password must be at least eight character"),
     USER_NOT_FOUND(1005, "user not found"),
-    JSON_EXCEPTION(1006, "JSONException")
+    JSON_EXCEPTION(1006, "JSONException"),
+    UNAUTHENTICATED(1007, "unauthenticated")
     ;
     private final int code;
     private final String message;
