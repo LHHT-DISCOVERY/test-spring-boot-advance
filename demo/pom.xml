@@ -106,13 +106,19 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
+<!--        xác thực jwt -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.37.3</version>
+        </dependency>
 
 
     </dependencies>
 
     <build>
         <plugins>
-<!--            lombok-->
+<!--         plugin   lombok-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -125,7 +131,7 @@
                     </excludes>
                 </configuration>
             </plugin>
-<!--            mapstruct-->
+<!--         plugin   mapstruct-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
