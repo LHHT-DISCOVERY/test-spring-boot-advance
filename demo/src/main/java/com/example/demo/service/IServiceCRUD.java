@@ -12,5 +12,4 @@ public interface IServiceCRUD<E,ERQ, ERP> {
 
     String deleteById(String id);
 
-    Optional<ERP> findByKeyword(String keyword);
 }

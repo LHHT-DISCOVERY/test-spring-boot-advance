@@ -15,7 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +33,7 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService implements IServiceCRUD<User, UserCreateRequest, UserResponse> {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     UserRepository userRepository;
 
 
@@ -38,12 +43,19 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
 
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
+//    only admin author role be able to using getList(), config @EnableMethodSecurity in SecurityConfig class
     public Collection<User> getList() {
+        log.info("In method get user");
         return userRepository.findAll();
     }
 
     @Override
+    @PostAuthorize("returnObject.username == authentication.name")
+    // only permit get information by id of username being login, not get information by id from other username
     public User findById(String id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.getRoles().forEach(log::info);
         return userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
@@ -53,9 +65,9 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
             throw new AppException(ErrorCode.USER_EXIST);
         User user = userMapper.toUser(usercreateRequest);
         user.setPassword(passwordEncoder.encode(usercreateRequest.getPassword()));
-        HashSet<String> role = new HashSet<>();
-        role.add(Role.USER.name());
-        user.setRoles(role);
+        HashSet<String> roles = new HashSet<>();
+        roles.add(Role.USER.name());
+        user.setRoles(roles);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -73,7 +85,7 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         return jsonObject.toString();
     }
 
-    @Override
+
     public Optional<UserResponse> findByKeyword(String username) {
         return Optional.ofNullable(userMapper.toUserResponse(userRepository.findByUsername(username).orElse(null)));
     }
@@ -83,5 +95,15 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         userMapper.updateUser(user, userUpdateRequest);
         return userRepository.save(user);
 
+    }
+
+
+    public UserResponse getMyInfoByToken() {
+        var context = SecurityContextHolder.getContext();
+        String name = context.getAuthentication().getName();
+
+        User user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        return userMapper.toUserResponse(user);
     }
 }
