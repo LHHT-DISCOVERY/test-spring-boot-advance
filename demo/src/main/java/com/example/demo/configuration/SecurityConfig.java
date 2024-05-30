@@ -62,6 +62,8 @@ public class SecurityConfig {
 
     }
 
+//    instead of : PasswordEncoder passWordEncoder = new BCryptPasswordEncoder(10) in each classes, we using @Bean following as below
+//    DI in other class essential, example: AuthenticationService class
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);

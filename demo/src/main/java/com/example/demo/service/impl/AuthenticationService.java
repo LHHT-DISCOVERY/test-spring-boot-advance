@@ -20,7 +20,6 @@ import lombok.experimental.NonFinal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,28 +36,31 @@ import java.util.StringJoiner;
 public class AuthenticationService {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
     UserRepository userRepository;
+
+    // has created bean in securityConfig file
+    PasswordEncoder passwordEncoder;
+
+
     @NonFinal
     @Value("${jwt.signKey}")
     protected String SIGNER_KEY;
 
     public IntrospectResponse introspect(IntrospectTokenRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
-// sử dụng lại thuật toán MACSigner để kí với key cũ để lấy lại được token
+// using again algorithms MACSigner to Sign with key (SIGNER_KEY) previous, take again token
         JWSVerifier jwsVerifier = new MACVerifier(SIGNER_KEY.getBytes());
-//        parse từ chuỗi token nhận được sang Sign sau đó dùng nó để verified
+//        parse from string token get it to Sign, then using it to verified
         SignedJWT signedJWT = SignedJWT.parse(token);
-//         khi có được 2 vấn đề trên tiếp tục verified nó (trả về true or false)
+//       when has two problem above, next: verified it (it will return true or false) as below
         var verified = signedJWT.verify(jwsVerifier);
-//        kiểm tra thêm token hết hạn chưa
+//        check plus token has expired yet ?
         Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         return IntrospectResponse.builder().valid(verified && expiryTime.after(new Date())).build();
     }
 
-    //     để ko DI vào constructor
 
     public AuthenticationResponse authenticated(AuthenticationRequest authenticationRequest) {
         var user = userRepository.findByUsername(authenticationRequest.getUsername()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
         boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword());
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
@@ -83,7 +85,7 @@ public class AuthenticationService {
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
-//        thuật toán ký token
+//        Algorithms Sign token
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
