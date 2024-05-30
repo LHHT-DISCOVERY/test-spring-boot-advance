@@ -3,6 +3,7 @@ package com.example.demo.configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,8 +20,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // using for api need authenticate and authorization + ex: annotation @PreAuthorize("hasRole('ADMIN')") above method need authenticated and author in service layer
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINT = {"/v1/users/public/**", "/v1/public/auth/**"};
+//     no need authenticate and authorization should be take all url in String[] PUBLIC_ENDPOINT and config url in method filterChain
+    private final String[] PUBLIC_ENDPOINT = {"/v1/users/myInfo", "/v1/public/auth/**"};
     private final String[] ADMIN_ENDPOINT = {"/v1/users/list"};
     @Value("${jwt.signKey}")
     private String signKey;
@@ -30,8 +33,8 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(request -> request
                 .requestMatchers(PUBLIC_ENDPOINT).permitAll()
 //                 only permit endpoint and roles has admin authorization
-//       .requestMatchers(ADMIN_ENDPOINT).hasRole(Role.ADMIN.name())
-                .requestMatchers(ADMIN_ENDPOINT).hasAnyAuthority("ROLE_ADMIN")
+// or      .requestMatchers(ADMIN_ENDPOINT).hasRole(Role.ADMIN.name())
+//                .requestMatchers(ADMIN_ENDPOINT).hasAnyAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated());
 
 //        using request, to provide token then this jwt will implements authenticate using task by url configured endpoint in spring security
