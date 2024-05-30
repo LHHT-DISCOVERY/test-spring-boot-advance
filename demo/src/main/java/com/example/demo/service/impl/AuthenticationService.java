@@ -75,7 +75,7 @@ public class AuthenticationService {
                 .issuer("devTri.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.SECONDS).toEpochMilli()
+                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
                 .claim("customClaim", "claim")
                 .build();
