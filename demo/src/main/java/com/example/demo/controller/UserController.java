@@ -31,7 +31,7 @@ public class UserController {
 
     UserMapper userMapper;
 
-    @PostMapping("/create")
+    @PostMapping("/public/create")
     ApiResponse<UserResponse> createUser(@Valid @RequestBody UserCreateRequest usercreateRequest) {
         LOGGER.info("create user request");
         ApiResponse<UserResponse> userApiResponse = new ApiResponse<>();
