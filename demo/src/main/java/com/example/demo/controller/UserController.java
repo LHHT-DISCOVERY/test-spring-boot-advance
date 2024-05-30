@@ -41,6 +41,11 @@ public class UserController {
 
     @GetMapping("/list")
     public ApiResponse<Collection<User>> getListUser() {
+//         get information by username and roles
+//        var authentication = SecurityContextHolder.getContext().getAuthentication();
+//        LOGGER.info("username : {}", authentication.getName());
+//        authentication.getAuthorities().forEach(s -> LOGGER.info(s.getAuthority()));
+
         ApiResponse<Collection<User>> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.getList());
         return apiResponse;

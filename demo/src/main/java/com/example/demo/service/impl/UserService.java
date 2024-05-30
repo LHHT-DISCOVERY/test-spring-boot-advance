@@ -4,6 +4,7 @@ import com.example.demo.dto.request.UserCreateRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.User;
+import com.example.demo.enums.Role;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMapper;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
 
 @Service
@@ -31,6 +33,8 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
 
 
     UserMapper userMapper;
+
+    PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -48,8 +52,10 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         if (userRepository.existsByUsername(usercreateRequest.getUsername()))
             throw new AppException(ErrorCode.USER_EXIST);
         User user = userMapper.toUser(usercreateRequest);
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
         user.setPassword(passwordEncoder.encode(usercreateRequest.getPassword()));
+        HashSet<String> role = new HashSet<>();
+        role.add(Role.USER.name());
+        user.setRoles(role);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
