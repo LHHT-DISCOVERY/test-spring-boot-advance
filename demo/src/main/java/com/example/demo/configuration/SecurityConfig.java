@@ -20,10 +20,11 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // using for api need authenticate and authorization + ex: annotation @PreAuthorize("hasRole('ADMIN')") above method need authenticated and author in service layer
+@EnableMethodSecurity
+// using for api need authenticate and authorization + ex: annotation @PreAuthorize("hasRole('ADMIN')") above method need authenticated and author in service layer
 public class SecurityConfig {
-//     no need authenticate and authorization should be take all url in String[] PUBLIC_ENDPOINT and config url in method filterChain
-    private final String[] PUBLIC_ENDPOINT = {"/v1/users/myInfo", "/v1/public/auth/**"};
+    //     no need authenticate and authorization should be take all url in String[] PUBLIC_ENDPOINT and config url in method filterChain
+    private final String[] PUBLIC_ENDPOINT = {"/v1/users/**", "/v1/public/auth/**"};
     private final String[] ADMIN_ENDPOINT = {"/v1/users/list"};
     @Value("${jwt.signKey}")
     private String signKey;
@@ -40,10 +41,17 @@ public class SecurityConfig {
 //        using request, to provide token then this jwt will implements authenticate using task by url configured endpoint in spring security
         httpSecurity.oauth2ResourceServer(
                 oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+//                       using this authenticationEntryPoint() method if token invalid (this mean : authentication fail), where will we direct user go ? this EX: nothing redirect user , only response code and message
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint())
         );
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
+    }
+
+    @Bean
+    JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint() {
+        return new JwtAuthenticationEntryPoint();
     }
 
     //    customize converter - "SCOPE_ADMIN" default to "ROLE_ADMIN" custom. using in spring config security
@@ -65,8 +73,8 @@ public class SecurityConfig {
 
     }
 
-//    instead of : PasswordEncoder passWordEncoder = new BCryptPasswordEncoder(10) in each classes, we using @Bean following as below
-//    DI in other class essential, example: AuthenticationService class
+    //    instead of : PasswordEncoder passWordEncoder = new BCryptPasswordEncoder(10) in each classes, we using @Bean following as below
+    //    DI in other class essential, example: AuthenticationService class
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
