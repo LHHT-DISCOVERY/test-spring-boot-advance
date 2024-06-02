@@ -58,7 +58,7 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtAuthenticationConverter = new JwtGrantedAuthoritiesConverter();
-        jwtAuthenticationConverter.setAuthorityPrefix("ROLE_");
+        jwtAuthenticationConverter.setAuthorityPrefix(""); // because set "ROLE_" in authentication service class
 
         JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
 

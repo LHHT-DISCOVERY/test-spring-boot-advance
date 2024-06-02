@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -42,9 +43,9 @@ public class UserController {
     @GetMapping("/list")
     public ApiResponse<Collection<UserResponse>> getListUser() {
 //         get information by username and roles
-//        var authentication = SecurityContextHolder.getContext().getAuthentication();
-//        LOGGER.info("username : {}", authentication.getName());
-//        authentication.getAuthorities().forEach(s -> LOGGER.info(s.getAuthority()));
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        LOGGER.info("username : {}", authentication.getName());
+        authentication.getAuthorities().forEach(s -> LOGGER.info(s.getAuthority()));
 
         ApiResponse<Collection<UserResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.getList().stream().map(userMapper::toUserResponse).toList());
@@ -69,7 +70,7 @@ public class UserController {
     @PostMapping("/update")
     public ApiResponse<UserResponse> updateUser(@RequestParam String id, @RequestBody UserUpdateRequest userUpdateRequest) {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userMapper.toUserResponse(userService.updateEntity(id, userUpdateRequest)));
+        apiResponse.setResult(userService.updateEntity(id, userUpdateRequest));
         return apiResponse;
     }
 
