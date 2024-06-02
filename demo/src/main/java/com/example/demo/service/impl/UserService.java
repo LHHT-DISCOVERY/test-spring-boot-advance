@@ -4,10 +4,10 @@ import com.example.demo.dto.request.UserCreateRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.User;
-import com.example.demo.enums.Role;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.IServiceCRUD;
 import lombok.AccessLevel;
@@ -41,9 +41,12 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
 
     PasswordEncoder passwordEncoder;
 
+    RoleRepository roleRepository;
+
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    // spring security default mapping with format "ROLE_"; this EX: ROLE_ADMIN // see author line 46-49 UserController Class
 //    only admin author role be able to using getList(), config @EnableMethodSecurity in SecurityConfig class
     public Collection<User> getList() {
         log.info("In method get user");
@@ -59,16 +62,16 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         return userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
+    //    @PreAuthorize("hasAuthority('POST_DATA')")
+// ex: author permission for method //using hasAuthority will get all content of author in contextHolder of Spring security
     public UserResponse createEntity(UserCreateRequest usercreateRequest) {
 
         if (userRepository.existsByUsername(usercreateRequest.getUsername()))
             throw new AppException(ErrorCode.USER_EXIST);
         User user = userMapper.toUser(usercreateRequest);
+        var roles = roleRepository.findAllById(usercreateRequest.getRoles());
         user.setPassword(passwordEncoder.encode(usercreateRequest.getPassword()));
-        HashSet<String> roles = new HashSet<>();
-        roles.add(Role.USER.name());
-//        user.setRoles(roles);
-
+        user.setRoles(new HashSet<>(roles));
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
@@ -90,10 +93,14 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         return Optional.ofNullable(userMapper.toUserResponse(userRepository.findByUsername(username).orElse(null)));
     }
 
-    public User updateEntity(String id, UserUpdateRequest userUpdateRequest) {
+    public UserResponse updateEntity(String id, UserUpdateRequest userUpdateRequest) {
         User user = this.findById(id);
-        userMapper.updateUser(user, userUpdateRequest);
-        return userRepository.save(user);
+        userMapper.updateUser(user, userUpdateRequest); // implement first when set
+        var roles = roleRepository.findAllById(userUpdateRequest.getRoles());
+        user.setPassword(passwordEncoder.encode(userUpdateRequest.getPassword()));
+        user.setRoles(new HashSet<>(roles));
+        user = userRepository.save(user);
+        return userMapper.toUserResponse(user);
 
     }
 
