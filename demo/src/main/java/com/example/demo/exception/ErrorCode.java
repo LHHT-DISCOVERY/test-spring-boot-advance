@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 @Getter
 public enum ErrorCode {
     USER_EXIST(1001, "user exist", HttpStatus.NOT_FOUND),
+    PERMISSION_NOT_FOUND(1009, "Permission not found", HttpStatus.NOT_FOUND),
     INVALID_ENUMKEY(1002, "Invalid message key", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED_EXCEPTION(9999, "uncategorized exception error", HttpStatus.INTERNAL_SERVER_ERROR),
     USERNAME_INVALID(1003, "Username must be at least five character", HttpStatus.BAD_REQUEST),

@@ -24,7 +24,7 @@ import javax.crypto.spec.SecretKeySpec;
 // using for api need authenticate and authorization + ex: annotation @PreAuthorize("hasRole('ADMIN')") above method need authenticated and author in service layer
 public class SecurityConfig {
     //     no need authenticate and authorization should be take all url in String[] PUBLIC_ENDPOINT and config url in method filterChain
-    private final String[] PUBLIC_ENDPOINT = {"/v1/users/**", "/v1/public/auth/**"};
+    private final String[] PUBLIC_ENDPOINT = {"/v1/users/**", "/v1/public/auth/**", "/v1/permissions/**" , "/v1/roles/**"};
     private final String[] ADMIN_ENDPOINT = {"/v1/users/list"};
     @Value("${jwt.signKey}")
     private String signKey;

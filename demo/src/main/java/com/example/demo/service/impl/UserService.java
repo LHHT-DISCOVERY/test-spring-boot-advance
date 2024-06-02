@@ -55,7 +55,7 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
     // only permit get information by id of username being login, not get information by id from other username
     public User findById(String id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        user.getRoles().forEach(log::info);
+//        user.getRoles().forEach(log::info);
         return userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
@@ -67,7 +67,7 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         user.setPassword(passwordEncoder.encode(usercreateRequest.getPassword()));
         HashSet<String> roles = new HashSet<>();
         roles.add(Role.USER.name());
-        user.setRoles(roles);
+//        user.setRoles(roles);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }

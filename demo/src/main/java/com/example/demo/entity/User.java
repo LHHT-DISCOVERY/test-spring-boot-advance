@@ -1,9 +1,6 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -26,5 +23,9 @@ public class User {
     String firstName;
     String lastName;
     LocalDate dob;
-    Set<String> roles;
+//    1 user -> many roles -> many to many
+//    Create new table have two columns (1 -> column: pk "id" in entity user , 2 -> column "name" in Entity role)
+    @ManyToMany(fetch = FetchType.EAGER)
+    Set<Role> roles;
+
 }
