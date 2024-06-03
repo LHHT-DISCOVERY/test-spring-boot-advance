@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
         try {
             errorCode = ErrorCode.valueOf(enumKey);
 
-//            get attributes in exception
+//            get attributes in annotation exception
             var constraintViolation =
                     exception.getBindingResult().getAllErrors().get(0).unwrap(ConstraintViolation.class);
             attributes = constraintViolation.getConstraintDescriptor().getAttributes();
