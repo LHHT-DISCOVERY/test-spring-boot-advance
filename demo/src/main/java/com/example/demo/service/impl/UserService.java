@@ -36,9 +36,9 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
     UserRepository userRepository;
 
-
     UserMapper userMapper;
 
+    // DI in @Bean in SecurityConfig class
     PasswordEncoder passwordEncoder;
 
     RoleRepository roleRepository;

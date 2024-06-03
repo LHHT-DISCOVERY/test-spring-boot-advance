@@ -2,11 +2,14 @@ package com.example.demo.service.impl;
 
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.IntrospectTokenRequest;
+import com.example.demo.dto.request.LogoutRequest;
 import com.example.demo.dto.response.AuthenticationResponse;
 import com.example.demo.dto.response.IntrospectResponse;
+import com.example.demo.entity.InvalidateToken;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
+import com.example.demo.repository.InvalidateRepository;
 import com.example.demo.repository.UserRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -29,6 +32,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 
 @Service
@@ -41,6 +45,8 @@ public class AuthenticationService {
     // has created bean in securityConfig file
     PasswordEncoder passwordEncoder;
 
+    InvalidateRepository invalidateRepository;
+
 
     @NonFinal
     @Value("${jwt.signKey}")
@@ -48,15 +54,21 @@ public class AuthenticationService {
 
     public IntrospectResponse introspect(IntrospectTokenRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
-// using again algorithms MACSigner to Sign with key (SIGNER_KEY) previous, take again token
-        JWSVerifier jwsVerifier = new MACVerifier(SIGNER_KEY.getBytes());
+//        using again algorithms MACSigner to Sign with key (SIGNER_KEY) previous, take again token
+//        JWSVerifier jwsVerifier = new MACVerifier(SIGNER_KEY.getBytes());
 //        parse from string token get it to Sign, then using it to verified
-        SignedJWT signedJWT = SignedJWT.parse(token);
+//        SignedJWT signedJWT = SignedJWT.parse(token);
 //       when has two problem above, next: verified it (it will return true or false) as below
-        var verified = signedJWT.verify(jwsVerifier);
+//        var verified = signedJWT.verify(jwsVerifier);
 //        check plus token has expired yet ?
-        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-        return IntrospectResponse.builder().valid(verified && expiryTime.after(new Date())).build();
+//        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean isValue = true;
+        try {
+            verifyToken(token);
+        } catch (AppException e) {
+            isValue = false;
+        }
+        return IntrospectResponse.builder().valid(isValue).build();
     }
 
 
@@ -82,6 +94,7 @@ public class AuthenticationService {
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
+                .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -110,5 +123,29 @@ public class AuthenticationService {
 
         }
         return stringJoiner.toString();
+    }
+
+    public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        var signToken = verifyToken(request.getToken());
+        String jit = signToken.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+        InvalidateToken invalidateToken = InvalidateToken.builder().id(jit).expiryTime(expiryTime).build();
+        invalidateRepository.save(invalidateToken);
+    }
+
+    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
+        JWSVerifier jwsVerifier = new MACVerifier(SIGNER_KEY.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        var verified = signedJWT.verify(jwsVerifier);
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        if (!verified && expiryTime.after(new Date())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        // if logout -> token will exist in table InvalidateToken Entity -> contain tokens invalid -> UNAUTHENTICATED
+        if (invalidateRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
+            throw new AppException(ErrorCode.PASSWORD_INVALID);
+        }
+        return signedJWT;
     }
 }

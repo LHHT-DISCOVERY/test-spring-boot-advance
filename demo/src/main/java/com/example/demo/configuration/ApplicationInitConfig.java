@@ -26,6 +26,7 @@ import java.util.Set;
 @Slf4j
 public class ApplicationInitConfig {
 
+    // DI in @Bean in SecurityConfig class
     PasswordEncoder passwordEncoder;
 
     @Bean
