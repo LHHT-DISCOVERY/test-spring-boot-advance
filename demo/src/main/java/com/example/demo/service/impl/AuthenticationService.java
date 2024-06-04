@@ -50,6 +50,14 @@ public class AuthenticationService {
 
 
     @NonFinal
+    @Value("${jwt.valid-duration}")
+    protected long VALID_DURATION;
+
+    @NonFinal
+    @Value("${jwt.refreshable-duration}")
+    protected long REFRESHABLE_DURATION;
+
+    @NonFinal
     @Value("${jwt.signKey}")
     protected String SIGNER_KEY;
 
@@ -65,7 +73,7 @@ public class AuthenticationService {
 //        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         boolean isValue = true;
         try {
-            verifyToken(token);
+            verifyToken(token, false);
         } catch (AppException e) {
             isValue = false;
         }
@@ -93,7 +101,7 @@ public class AuthenticationService {
                 .issuer("devTri.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()
                 ))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
@@ -127,19 +135,34 @@ public class AuthenticationService {
     }
 
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
-        var signToken = verifyToken(request.getToken());
-        String jit = signToken.getJWTClaimsSet().getJWTID();
-        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
-        InvalidateToken invalidateToken = InvalidateToken.builder().id(jit).expiryTime(expiryTime).build();
-        invalidateRepository.save(invalidateToken);
+        try {
+            // need check time expiry along with time refresh token
+            // when implement required logout will always save InvalidToken Entity to DB and don't care getExpirationTime() method,
+            // if not save ->  user have a token -> using this token to refresh a new token -> not security
+            // no need check getExpirationTime() method, only check time refresh token -> because time refresh token always before now time
+            // -> not cause exception by verifyToken() method -> always save InvalidToken Entity to DB
+            var signToken = verifyToken(request.getToken(), true);
+            String jit = signToken.getJWTClaimsSet().getJWTID();
+            Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+            InvalidateToken invalidateToken = InvalidateToken.builder().id(jit).expiryTime(expiryTime).build();
+            invalidateRepository.save(invalidateToken);
+        } catch (AppException e) {
+            log.info("token already expired ");
+        }
     }
 
-    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
+    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
         JWSVerifier jwsVerifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
 
         var verified = signedJWT.verify(jwsVerifier);
-        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        // this mean (within REFRESHABLE_DURATION since create token  must implement refresh token), if not refresh = expiration -> login again
+        // user using task along with token -> error authentication (invalid token by expiration token)-> refresh token -> be able to implement task
+        // -> if refresh not successful -> this mean beyond refresh token time -> login again
+        Date expiryTime = (isRefresh)
+                ? new Date(signedJWT.getJWTClaimsSet().getIssueTime().toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli())
+                : signedJWT.getJWTClaimsSet().getExpirationTime();
+        signedJWT.getJWTClaimsSet().getExpirationTime();
         if (!verified && expiryTime.after(new Date())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
@@ -152,7 +175,7 @@ public class AuthenticationService {
 
     public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
         // verify token success -> token valid -> refresh
-        var signedJWT = this.verifyToken(request.getToken());
+        var signedJWT = this.verifyToken(request.getToken(), true);
         var jit = signedJWT.getJWTClaimsSet().getJWTID();
         var expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
 
