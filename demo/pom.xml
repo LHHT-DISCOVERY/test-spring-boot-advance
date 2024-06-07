@@ -96,35 +96,61 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-<!--        Spring security-->
+        <!--        Spring security-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
+        <!--        mapstruct-->
 
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>1.5.5.Final</version>
         </dependency>
-<!-- encode password -->
+        <!-- encode password -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
-<!--        xác thực jwt , đã có oauth2 có sẵn nimbus nên ko cần nimbus nữa-->
-<!--        <dependency>-->
-<!--            <groupId>com.nimbusds</groupId>-->
-<!--            <artifactId>nimbus-jose-jwt</artifactId>-->
-<!--            <version>9.37.3</version>-->
-<!--        </dependency>-->
+        <!--        xác thực jwt , đã có oauth2 có sẵn nimbus nên ko cần nimbus nữa-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.nimbusds</groupId>-->
+        <!--            <artifactId>nimbus-jose-jwt</artifactId>-->
+        <!--            <version>9.37.3</version>-->
+        <!--        </dependency>-->
 
+        <!--         change local date to string , this mean, using ObjectMapper map data has datatype LocalDate to String \-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.16.1</version>
+        </dependency>
+        <!-- unit test : using H2 DB to connect to H2 instead of mysql -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.1.214</version>
+            <scope>test</scope>
+        </dependency>
+        <!--    unit test : security test     -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
     <build>
         <plugins>
-<!--         plugin   lombok-->
+            <!--         plugin   lombok-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -137,7 +163,7 @@
                     </excludes>
                 </configuration>
             </plugin>
-<!--         plugin   mapstruct-->
+            <!--         plugin   mapstruct-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -167,6 +193,39 @@
                         <arg>-Amapstruct.defaultComponentModel=spring</arg>
                         <arg>-Amapstruct.verbose=true</arg>
                     </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!--            plugin jacoco coverage unit code-->
+            <!--          run jacoco (must install mvn)-> cmd -> cd current project -> type:   (./mvnw test jacoco:report ) or (mvn test jacoco:report) -->
+            <!--            seen report from jacoco : folder target -> site -> jacoco -> index.html -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!--                    remove package no need write unit test-->
+                    <excludes>
+                        <exclude>com/example/demo/dto/**</exclude>
+                        <exclude>com/example/demo/entity/**</exclude>
+                        <exclude>com/example/demo/mapper/**</exclude>
+                        <exclude>com/example/demo/configuration/**</exclude>
+                        <exclude>com/example/demo/common/event_tracking/**</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

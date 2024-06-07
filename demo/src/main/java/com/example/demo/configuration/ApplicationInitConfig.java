@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +31,13 @@ public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
 
     @Bean
+    // this Bean only init  if value : spring.datasource.driverClassName = com.mysql.cj.jdbc.Driver, this mean in .Yml
+    // else H2 DB to test -> not init this bean
+    @ConditionalOnProperty(prefix = "spring",
+            value = "datasource.driverClassName",
+            havingValue = "com.mysql.cj.jdbc.Driver")
     ApplicationRunner applicationRunner(UserRepository userRepository, PermissionRepository permissionRepository, RoleRepository roleRepository) {
+        log.info("init application");
         Permission perApprove = Permission.builder().name("APPROVE_POST").description("approve data from user").build();
         Permission perReject = Permission.builder().name("REJECT_POST").description("reject data from user").build();
         Permission perUpdate = Permission.builder().name("UPDATE_POST").description("update data from user").build();
