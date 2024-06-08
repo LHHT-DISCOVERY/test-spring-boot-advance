@@ -47,7 +47,7 @@ public class IntegrationUserControllerTest {
         dynamicPropertyRegistry.add("spring.datasource.url", () -> MY_SQL_CONTAINER.getJdbcUrl());
         dynamicPropertyRegistry.add("spring.datasource.username", () -> MY_SQL_CONTAINER.getUsername());
         dynamicPropertyRegistry.add("spring.datasource.password", () -> MY_SQL_CONTAINER.getPassword());
-        dynamicPropertyRegistry.add("spring.datasource.driverClassName", () -> "com.mysql.cj.jdbc.Driver");
+        dynamicPropertyRegistry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
         dynamicPropertyRegistry.add("spring.datasource.driverClassName", () -> "com.mysql.cj.jdbc.Driver");
         dynamicPropertyRegistry.add("spring.jpa.hibernate.ddl-auto", () -> "update");
     }

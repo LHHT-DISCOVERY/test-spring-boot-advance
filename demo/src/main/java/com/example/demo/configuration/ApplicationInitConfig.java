@@ -37,7 +37,7 @@ public class ApplicationInitConfig {
     // else H2 DB to test -> not init this bean
     @ConditionalOnProperty(
             prefix = "spring",
-            value = "datasource.driverClassName",
+            value = "datasource.driver-class-name",
             havingValue = "com.mysql.cj.jdbc.Driver")
     ApplicationRunner applicationRunner(
             UserRepository userRepository, PermissionRepository permissionRepository, RoleRepository roleRepository) {
