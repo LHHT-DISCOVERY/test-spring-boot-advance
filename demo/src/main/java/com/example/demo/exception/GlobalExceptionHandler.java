@@ -1,7 +1,10 @@
 package com.example.demo.exception;
 
-import com.example.demo.dto.response.ApiResponse;
+import java.util.Map;
+import java.util.Objects;
+
 import jakarta.validation.ConstraintViolation;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -10,15 +13,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.Map;
-import java.util.Objects;
+import com.example.demo.dto.response.ApiResponse;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final String MIN_ATTRIBUTE = "min";
 
-    //catch error have unexpected cause by system not process yet
+    // catch error have unexpected cause by system not process yet
     @ExceptionHandler(value = Exception.class)
     ResponseEntity<ApiResponse> handlingException(RuntimeException exception) {
         ApiResponse apiResponse = new ApiResponse();
@@ -28,7 +30,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
-    //catch error cause by custom exception AppException class
+    // catch error cause by custom exception AppException class
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
         ApiResponse apiResponse = new ApiResponse();
@@ -38,7 +40,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getHttpStatusCode()).body(apiResponse);
     }
 
-    //catch error cause by annotation @size ,...
+    // catch error cause by annotation @size ,...
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handlingMethodArgumentNotValid(MethodArgumentNotValidException exception) {
         String enumKey = Objects.requireNonNull(exception.getFieldError()).getDefaultMessage();
@@ -47,7 +49,7 @@ public class GlobalExceptionHandler {
         try {
             errorCode = ErrorCode.valueOf(enumKey);
 
-//            get attributes in annotation exception
+            //            get attributes in annotation exception
             var constraintViolation =
                     exception.getBindingResult().getAllErrors().get(0).unwrap(ConstraintViolation.class);
             attributes = constraintViolation.getConstraintDescriptor().getAttributes();
@@ -59,7 +61,10 @@ public class GlobalExceptionHandler {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(errorCode.getCode());
         // if have attribute -> map ; else -> get message original
-        apiResponse.setMessage(Objects.nonNull(attributes) ? mapAttribute(errorCode.getMessage(), attributes) : errorCode.getMessage());
+        apiResponse.setMessage(
+                Objects.nonNull(attributes)
+                        ? mapAttribute(errorCode.getMessage(), attributes)
+                        : errorCode.getMessage());
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
@@ -67,9 +72,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = AccessDeniedException.class)
     ResponseEntity<ApiResponse> handlingAccessDeniedException(AccessDeniedException exception) {
         ErrorCode errorCode = ErrorCode.UNAUTHORiZED;
-        return ResponseEntity.status(errorCode.getHttpStatusCode()).body(
-                ApiResponse.builder().code(errorCode.getCode()).message(errorCode.getMessage()).build()
-        );
+        return ResponseEntity.status(errorCode.getHttpStatusCode())
+                .body(ApiResponse.builder()
+                        .code(errorCode.getCode())
+                        .message(errorCode.getMessage())
+                        .build());
     }
 
     private String mapAttribute(String message, Map<String, Object> attributes) {

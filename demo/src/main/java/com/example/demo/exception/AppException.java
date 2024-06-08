@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class AppException extends RuntimeException{
+public class AppException extends RuntimeException {
     private ErrorCode errorCode;
 
     public AppException(ErrorCode errorCode) {
@@ -13,6 +13,5 @@ public class AppException extends RuntimeException{
         this.errorCode = errorCode;
     }
 
-    public AppException() {
-    }
+    public AppException() {}
 }

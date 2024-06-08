@@ -1,34 +1,34 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.request.UserCreateRequest;
-import com.example.demo.dto.request.UserUpdateRequest;
-import com.example.demo.dto.response.ApiResponse;
-import com.example.demo.dto.response.UserResponse;
-import com.example.demo.entity.User;
-import com.example.demo.mapper.UserMapper;
-import com.example.demo.service.impl.UserService;
+import java.util.Collection;
+
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
+import com.example.demo.dto.request.UserCreateRequest;
+import com.example.demo.dto.request.UserUpdateRequest;
+import com.example.demo.dto.response.ApiResponse;
+import com.example.demo.dto.response.UserResponse;
+import com.example.demo.mapper.UserMapper;
+import com.example.demo.service.impl.UserService;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequestMapping("/v1/users")
-//DI bằng constructor
+// DI bằng constructor
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     UserService userService;
-
 
     UserMapper userMapper;
 
@@ -42,13 +42,14 @@ public class UserController {
 
     @GetMapping("/list")
     public ApiResponse<Collection<UserResponse>> getListUser() {
-//         get information by username and roles
+        //         get information by username and roles
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         LOGGER.info("username : {}", authentication.getName());
         authentication.getAuthorities().forEach(s -> LOGGER.info(s.getAuthority()));
 
         ApiResponse<Collection<UserResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.getList().stream().map(userMapper::toUserResponse).toList());
+        apiResponse.setResult(
+                userService.getList().stream().map(userMapper::toUserResponse).toList());
         return apiResponse;
     }
 
@@ -64,18 +65,18 @@ public class UserController {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.deleteById(id));
         return apiResponse;
-
     }
 
     @PostMapping("/update")
-    public ApiResponse<UserResponse> updateUser(@RequestParam String id, @RequestBody UserUpdateRequest userUpdateRequest) {
+    public ApiResponse<UserResponse> updateUser(
+            @RequestParam String id, @RequestBody UserUpdateRequest userUpdateRequest) {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.updateEntity(id, userUpdateRequest));
         return apiResponse;
     }
 
     @GetMapping("/myInfo")
-    ApiResponse<UserResponse> getMyInfo(){
+    ApiResponse<UserResponse> getMyInfo() {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.getMyInfoByToken());
         return apiResponse;
