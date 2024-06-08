@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.request.UserCreateRequest;
-import com.example.demo.dto.response.UserResponse;
-import com.example.demo.service.impl.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.extern.slf4j.Slf4j;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +18,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.time.LocalDate;
+import com.example.demo.dto.request.UserCreateRequest;
+import com.example.demo.dto.response.UserResponse;
+import com.example.demo.service.impl.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
 @Slf4j
@@ -41,7 +43,7 @@ public class UserControllerTest {
     private LocalDate doB;
 
     @BeforeEach
-// fake data before run
+    // fake data before run
     void initData() {
         doB = LocalDate.of(2001, 10, 20);
         userCreateRequest = UserCreateRequest.builder()
@@ -68,23 +70,23 @@ public class UserControllerTest {
         objectMapper.registerModule(new JavaTimeModule());
         String content = objectMapper.writeValueAsString(userCreateRequest);
 
-
-        // not call direct through method in service layer (this mean bypass , not call method in createEntity() in service layer) because testing in controller -> mock it
-        when(userService.createEntity(any()))
-                .thenReturn(userResponse);
-
+        // not call direct through method in service layer (this mean bypass , not call method in createEntity() in
+        // service layer) because testing in controller -> mock it
+        when(userService.createEntity(any())).thenReturn(userResponse);
 
         // WHEN (this mean test anything -> using test API)
         // THEN (this mean -> expect things -> this mean can response,... )
         // using Bean @Autowired private MockMvc mockMvc,  mockMvc.perform (...) to test method in class controller
-        mockMvc.perform(MockMvcRequestBuilders // create request
-                        .post("/v1/users/public/create") // URL
-                        .contentType(MediaType.APPLICATION_JSON_VALUE) // request type
-                        .content(content)) // param request
+        mockMvc.perform(
+                        MockMvcRequestBuilders // create request
+                                .post("/v1/users/public/create") // URL
+                                .contentType(MediaType.APPLICATION_JSON_VALUE) // request type
+                                .content(content)) // param request
                 // THEN
                 .andExpect(status().isOk()) // status code
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(1000)) // get result in response to compare
-                .andExpect(MockMvcResultMatchers.jsonPath("result.id").value(9999)); // expect more value in response from postman;
+                .andExpect(MockMvcResultMatchers.jsonPath("result.id")
+                        .value(9999)); // expect more value in response from postman;
     }
 
     @Test
@@ -94,8 +96,7 @@ public class UserControllerTest {
         userCreateRequest.setUsername("tri");
         String content = objectMapper.writeValueAsString(userCreateRequest);
 
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/v1/users/public/create")
+        mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/public/create")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(content))
                 .andExpect(status().isBadRequest())

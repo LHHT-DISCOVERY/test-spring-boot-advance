@@ -1,13 +1,15 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.request.UserCreateRequest;
-import com.example.demo.dto.response.UserResponse;
-import com.example.demo.entity.User;
-import com.example.demo.exception.AppException;
-import com.example.demo.repository.RoleRepository;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.service.impl.UserService;
-import lombok.extern.slf4j.Slf4j;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +18,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import com.example.demo.dto.request.UserCreateRequest;
+import com.example.demo.dto.response.UserResponse;
+import com.example.demo.entity.User;
+import com.example.demo.exception.AppException;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.service.impl.UserService;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
 @Slf4j
@@ -85,7 +87,6 @@ public class UserServiceTest {
         // THEN
         assertThat(response.getId()).isEqualTo("9999");
         assertThat(response.getUsername()).isEqualTo("huutri");
-
     }
 
     @Test
@@ -99,28 +100,26 @@ public class UserServiceTest {
         // WHEN
         // because cause by exception -> no need call save()
 
-
         // THEN
         // assertThrows will return variable is exception (ErrorCode)
-        var exception = assertThrows(AppException.class,
-                () -> userService.createEntity(userCreateRequest));
+        var exception = assertThrows(AppException.class, () -> userService.createEntity(userCreateRequest));
 
         assertThat(exception.getErrorCode().getCode()).isEqualTo(1001);
-
     }
 
     @Test
     public void createUser_NotRoles() {
         // GIVEN
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
-        when(roleRepository.findAllById(any())).thenReturn(List.of()); // not find role but still call method save() in repository
+        when(roleRepository.findAllById(any()))
+                .thenReturn(List.of()); // not find role but still call method save() in repository
         when(userRepository.save(any())).thenReturn(user);
 
         // WHEN
         // using Bean  @Autowired UserService userService; userService to test method in class service
         var response = userService.createEntity(userCreateRequest);
 
-        //THEN
+        // THEN
         assertThat(response.getRoles()).isEqualTo(null);
         assertThat(response.getUsername()).isEqualTo("huutri");
     }
@@ -134,7 +133,6 @@ public class UserServiceTest {
 
         assertThat(response.getUsername()).isEqualTo("huutri");
         assertThat(response.getId()).isEqualTo("9999");
-
     }
 
     @Test
@@ -147,14 +145,14 @@ public class UserServiceTest {
         assertThat(exception.getErrorCode().getMessage()).isEqualTo("user not found");
     }
 
-//    note param in report jacoco:
-//    cxty (as little as possible, this mean little : "if, esle if , esle" condition)
-//    and : default cxty is 1 -> if the method has 1 condition "if" in method -> cxty is 2
-//    if cxty is 2 -> to coverage full (100%) -> need write two method unit test
-//    1: check into condition (into and implement in condition "if")
-//    2: check not into condition (not into condition "if")
-//    -> ex: userService.createEntity()
-//      1: into "if" condition, this mean show at GIVEN , "when"..existsByUsername() -> assertThrows.
-//      2: not into "if" condition -> save successful -> assertThat -> compare result.
+    //    note param in report jacoco:
+    //    cxty (as little as possible, this mean little : "if, esle if , esle" condition)
+    //    and : default cxty is 1 -> if the method has 1 condition "if" in method -> cxty is 2
+    //    if cxty is 2 -> to coverage full (100%) -> need write two method unit test
+    //    1: check into condition (into and implement in condition "if")
+    //    2: check not into condition (not into condition "if")
+    //    -> ex: userService.createEntity()
+    //      1: into "if" condition, this mean show at GIVEN , "when"..existsByUsername() -> assertThrows.
+    //      2: not into "if" condition -> save successful -> assertThat -> compare result.
 
 }

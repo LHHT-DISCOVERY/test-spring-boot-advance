@@ -2,10 +2,9 @@ package com.example.demo.common.event_tracking;
 
 public class AuditEventSQLBuilder {
 
-    public AuditEventSQLBuilder() {
-    }
+    public AuditEventSQLBuilder() {}
 
-    static String builtInsertSQL(AuditEventDBNameResolver auditEventDBNameResolver ){
+    static String builtInsertSQL(AuditEventDBNameResolver auditEventDBNameResolver) {
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO ");
         sqlBuilder.append(auditEventDBNameResolver.getTableName(AuditEventDatabaseName.AUDIT_EVENT));
         sqlBuilder.append(" (");
