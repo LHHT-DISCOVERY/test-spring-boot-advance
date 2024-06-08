@@ -1,24 +1,24 @@
 package com.example.demo.controller;
 
-import java.util.Collection;
-
-import jakarta.validation.Valid;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-
+import com.example.demo.common.event_tracking.AuditEventType;
+import com.example.demo.common.event_tracking.AuditLogger;
+import com.example.demo.common.event_tracking.AuditStatus;
 import com.example.demo.dto.request.UserCreateRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.service.impl.UserService;
-
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
 
 @RestController
 @RequestMapping("/v1/users")
@@ -34,9 +34,9 @@ public class UserController {
 
     @PostMapping("/public/create")
     ApiResponse<UserResponse> createUser(@Valid @RequestBody UserCreateRequest usercreateRequest) {
-        LOGGER.info("create user request");
         ApiResponse<UserResponse> userApiResponse = new ApiResponse<>();
         userApiResponse.setResult(userService.createEntity(usercreateRequest));
+        AuditLogger.info("System Create User", AuditEventType.SIGN_UP, AuditStatus.SUCCESS, "Call API /v1/users/public/create");
         return userApiResponse;
     }
 
