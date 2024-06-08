@@ -255,7 +255,8 @@
                 </configuration>
             </plugin>
             <!--            plugin spotless to format code-->
-<!--            run format : terminal ()-->
+            <!--            run format : terminal (mvn spotless:apply) to apply format code , (mnv spotless:check) to check file has error format-->
+            <!--            using: in code (spotless:off and spotless:on) to limit code no need format, ex: line 65 and 76 in ApplicationInitConfig class -->
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
