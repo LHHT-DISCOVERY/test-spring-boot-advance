@@ -1,16 +1,16 @@
 package com.example.demo.common.event_tracking;
 
-
-import ch.qos.logback.classic.db.DBAppender;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.db.DBAppender;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 
 public class AuditEventDBAppender extends DBAppender {
     static final Logger LOGGER = LoggerFactory.getLogger(AuditEventDBAppender.class);
@@ -27,7 +27,8 @@ public class AuditEventDBAppender extends DBAppender {
         this.insertSQLStm = AuditEventSQLBuilder.builtInsertSQL(this.auditEventDBNameResolver);
     }
 
-    protected void subAppend(ILoggingEvent iLoggingEvent, Connection connection, PreparedStatement insertStatement) throws Throwable {
+    protected void subAppend(ILoggingEvent iLoggingEvent, Connection connection, PreparedStatement insertStatement)
+            throws Throwable {
         this.bindingLoggingEventWithInsertStatement(insertStatement, iLoggingEvent);
         int updateCount = -1;
         try {
@@ -39,11 +40,10 @@ public class AuditEventDBAppender extends DBAppender {
         if (updateCount != 1) {
             this.addWarn("Failed to insert loggingEvent");
         }
-
     }
 
-    protected void secondarySubAppend(ILoggingEvent iLoggingEvent, Connection connection, long eventId) throws Throwable {
-    }
+    protected void secondarySubAppend(ILoggingEvent iLoggingEvent, Connection connection, long eventId)
+            throws Throwable {}
 
     protected Method getGeneratedKeysMethod() {
         return GET_GENERATED_KEYS_METHOD;
@@ -53,14 +53,13 @@ public class AuditEventDBAppender extends DBAppender {
         return this.insertSQLStm;
     }
 
-
-    private void bindingLoggingEventWithInsertStatement(PreparedStatement stmt, ILoggingEvent iLoggingEvent) throws SQLException {
+    private void bindingLoggingEventWithInsertStatement(PreparedStatement stmt, ILoggingEvent iLoggingEvent)
+            throws SQLException {
         stmt.setString(1, iLoggingEvent.getFormattedMessage());
     }
 
-
-    protected void insertProperties(Map<String, String> mergeMap, Connection connection, long eventId) throws SQLException {
-    }
+    protected void insertProperties(Map<String, String> mergeMap, Connection connection, long eventId)
+            throws SQLException {}
 
     static {
         Method getGenerateKeysMethod;

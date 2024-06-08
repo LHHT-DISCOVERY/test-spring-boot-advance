@@ -1,18 +1,9 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.request.UserCreateRequest;
-import com.example.demo.dto.request.UserUpdateRequest;
-import com.example.demo.dto.response.UserResponse;
-import com.example.demo.entity.User;
-import com.example.demo.exception.AppException;
-import com.example.demo.exception.ErrorCode;
-import com.example.demo.mapper.UserMapper;
-import com.example.demo.repository.RoleRepository;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.service.IServiceCRUD;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
@@ -23,12 +14,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
+import com.example.demo.dto.request.UserCreateRequest;
+import com.example.demo.dto.request.UserUpdateRequest;
+import com.example.demo.dto.response.UserResponse;
+import com.example.demo.entity.User;
+import com.example.demo.exception.AppException;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.mapper.UserMapper;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.service.IServiceCRUD;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Service
-//DI bằng constructor
+// DI bằng constructor
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService implements IServiceCRUD<User, UserCreateRequest, UserResponse> {
@@ -43,11 +45,11 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
 
     RoleRepository roleRepository;
 
-
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    // spring security default mapping with format "ROLE_"; this EX: ROLE_ADMIN // see author line 46-49 UserController Class
-//    only admin author role be able to using getList(), config @EnableMethodSecurity in SecurityConfig class
+    // spring security default mapping with format "ROLE_"; this EX: ROLE_ADMIN // see author line 46-49 UserController
+    // Class
+    //    only admin author role be able to using getList(), config @EnableMethodSecurity in SecurityConfig class
     public Collection<User> getList() {
         log.info("In method get user");
         return userRepository.findAll();
@@ -58,12 +60,13 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
     // only permit get information by id of username being login, not get information by id from other username
     public User findById(String id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-//        user.getRoles().forEach(log::info);
+        //        user.getRoles().forEach(log::info);
         return userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
     //    @PreAuthorize("hasAuthority('POST_DATA')")
-// ex: author permission for method //using hasAuthority will get all content of author in contextHolder of Spring security
+    // ex: author permission for method //using hasAuthority will get all content of author in contextHolder of Spring
+    // security
     public UserResponse createEntity(UserCreateRequest usercreateRequest) {
 
         if (userRepository.existsByUsername(usercreateRequest.getUsername()))
@@ -74,7 +77,6 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         user.setRoles(new HashSet<>(roles));
         return userMapper.toUserResponse(userRepository.save(user));
     }
-
 
     @Override
     public String deleteById(String id) {
@@ -88,9 +90,9 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         return jsonObject.toString();
     }
 
-
     public Optional<UserResponse> findByKeyword(String username) {
-        return Optional.ofNullable(userMapper.toUserResponse(userRepository.findByUsername(username).orElse(null)));
+        return Optional.ofNullable(userMapper.toUserResponse(
+                userRepository.findByUsername(username).orElse(null)));
     }
 
     public UserResponse updateEntity(String id, UserUpdateRequest userUpdateRequest) {
@@ -101,9 +103,7 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
         user.setRoles(new HashSet<>(roles));
         user = userRepository.save(user);
         return userMapper.toUserResponse(user);
-
     }
-
 
     public UserResponse getMyInfoByToken() {
         var context = SecurityContextHolder.getContext();

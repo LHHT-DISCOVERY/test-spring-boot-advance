@@ -1,9 +1,8 @@
 package com.example.demo.service;
 
 import java.util.Collection;
-import java.util.Optional;
 
-public interface IServiceCRUD<E,ERQ, ERP> {
+public interface IServiceCRUD<E, ERQ, ERP> {
     Collection<E> getList();
 
     E findById(String id);
@@ -11,5 +10,4 @@ public interface IServiceCRUD<E,ERQ, ERP> {
     ERP createEntity(ERQ erq);
 
     String deleteById(String id);
-
 }

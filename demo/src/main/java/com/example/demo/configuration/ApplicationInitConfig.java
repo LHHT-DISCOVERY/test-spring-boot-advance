@@ -1,25 +1,27 @@
 package com.example.demo.configuration;
 
-import com.example.demo.entity.Permission;
-import com.example.demo.entity.Role;
-import com.example.demo.entity.User;
-import com.example.demo.repository.PermissionRepository;
-import com.example.demo.repository.RoleRepository;
-import com.example.demo.repository.UserRepository;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.example.demo.entity.Permission;
+import com.example.demo.entity.Role;
+import com.example.demo.entity.User;
+import com.example.demo.repository.PermissionRepository;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserRepository;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @RequiredArgsConstructor
@@ -33,21 +35,45 @@ public class ApplicationInitConfig {
     @Bean
     // this Bean only init  if value : spring.datasource.driverClassName = com.mysql.cj.jdbc.Driver, this mean in .Yml
     // else H2 DB to test -> not init this bean
-    @ConditionalOnProperty(prefix = "spring",
+    @ConditionalOnProperty(
+            prefix = "spring",
             value = "datasource.driverClassName",
             havingValue = "com.mysql.cj.jdbc.Driver")
-    ApplicationRunner applicationRunner(UserRepository userRepository, PermissionRepository permissionRepository, RoleRepository roleRepository) {
+    ApplicationRunner applicationRunner(
+            UserRepository userRepository, PermissionRepository permissionRepository, RoleRepository roleRepository) {
         log.info("init application");
-        Permission perApprove = Permission.builder().name("APPROVE_POST").description("approve data from user").build();
-        Permission perReject = Permission.builder().name("REJECT_POST").description("reject data from user").build();
-        Permission perUpdate = Permission.builder().name("UPDATE_POST").description("update data from user").build();
-        Permission perCreate = Permission.builder().name("CREATE_POST").description("create data from user").build();
+        Permission perApprove = Permission.builder()
+                .name("APPROVE_POST")
+                .description("approve data from user")
+                .build();
+        Permission perReject = Permission.builder()
+                .name("REJECT_POST")
+                .description("reject data from user")
+                .build();
+        Permission perUpdate = Permission.builder()
+                .name("UPDATE_POST")
+                .description("update data from user")
+                .build();
+        Permission perCreate = Permission.builder()
+                .name("CREATE_POST")
+                .description("create data from user")
+                .build();
         List<Permission> AllPermissions = List.of(perCreate, perApprove, perReject, perUpdate);
-//        List<String> idPermission = permissionsSave.stream().map(Permission::getName).toList();
+        //        List<String> idPermission = permissionsSave.stream().map(Permission::getName).toList();
         permissionRepository.saveAll(AllPermissions);
         List<Permission> permissionsUser = List.of(perUpdate, perCreate);
-        Role roleAdmin = Role.builder().name("ADMIN").description("role admin").permissions(new HashSet<>(AllPermissions)).build();
-        Role roleUser = Role.builder().name("USER").description("role user").permissions(new HashSet<>(permissionsUser)).build();
+        // spotless:off
+        Role roleAdmin = Role.builder()
+                .name("ADMIN")
+                .description("role admin")
+                .permissions(new HashSet<>(AllPermissions))
+                .build();
+        Role roleUser = Role.builder()
+                .name("USER")
+                .description("role user")
+                .permissions(new HashSet<>(permissionsUser))
+                .build();
+        //spotless:on
         List<Role> saveRoles = List.of(roleAdmin, roleUser);
         roleRepository.saveAll(saveRoles);
         Set<Role> roles = Set.of(roleAdmin);

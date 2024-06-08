@@ -1,5 +1,19 @@
 package com.example.demo.service.impl;
 
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.StringJoiner;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.IntrospectTokenRequest;
 import com.example.demo.dto.request.LogoutRequest;
@@ -17,24 +31,11 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
-
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +48,6 @@ public class AuthenticationService {
     PasswordEncoder passwordEncoder;
 
     InvalidateRepository invalidateRepository;
-
 
     @NonFinal
     @Value("${jwt.valid-duration}")
@@ -63,14 +63,14 @@ public class AuthenticationService {
 
     public IntrospectResponse introspect(IntrospectTokenRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
-//        using again algorithms MACSigner to Sign with key (SIGNER_KEY) previous, take again token
-//        JWSVerifier jwsVerifier = new MACVerifier(SIGNER_KEY.getBytes());
-//        parse from string token get it to Sign, then using it to verified
-//        SignedJWT signedJWT = SignedJWT.parse(token);
-//       when has two problem above, next: verified it (it will return true or false) as below
-//        var verified = signedJWT.verify(jwsVerifier);
-//        check plus token has expired yet ?
-//        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        //        using again algorithms MACSigner to Sign with key (SIGNER_KEY) previous, take again token
+        //        JWSVerifier jwsVerifier = new MACVerifier(SIGNER_KEY.getBytes());
+        //        parse from string token get it to Sign, then using it to verified
+        //        SignedJWT signedJWT = SignedJWT.parse(token);
+        //       when has two problem above, next: verified it (it will return true or false) as below
+        //        var verified = signedJWT.verify(jwsVerifier);
+        //        check plus token has expired yet ?
+        //        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         boolean isValue = true;
         try {
             verifyToken(token, false);
@@ -80,35 +80,35 @@ public class AuthenticationService {
         return IntrospectResponse.builder().valid(isValue).build();
     }
 
-
     public AuthenticationResponse authenticated(AuthenticationRequest authenticationRequest) {
-        var user = userRepository.findByUsername(authenticationRequest.getUsername()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        var user = userRepository
+                .findByUsername(authenticationRequest.getUsername())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword());
-        if (!authenticated)
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-//        authenticate ok => generate token
+        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        //        authenticate ok => generate token
         var token = generateToken(user);
         return AuthenticationResponse.builder().token(token).authenticated(true).build();
     }
 
     private String generateToken(User user) {
-//        header là Algorithms của token
+        //        header là Algorithms của token
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
-//        cần payload , data trong body gọi là claimSet
-//        claim : subject đại diện user login, issuer từ ai thường là domain , issuer time , thời gian hết hạn expire time, hết hạn sau 1 tiếng
+        //        cần payload , data trong body gọi là claimSet
+        //        claim : subject đại diện user login, issuer từ ai thường là domain , issuer time , thời gian hết hạn
+        // expire time, hết hạn sau 1 tiếng
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issuer("devTri.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()
-                ))
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
-//        Algorithms Sign token
+        //        Algorithms Sign token
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
@@ -118,18 +118,15 @@ public class AuthenticationService {
         }
     }
 
-
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
-//        add custom prefix "ROLE_" while build token to declare between ROLE and PERMISSION
+        //        add custom prefix "ROLE_" while build token to declare between ROLE and PERMISSION
         if (!user.getRoles().isEmpty()) {
             user.getRoles().forEach(role -> {
-                        stringJoiner.add("ROLE_" + role.getName());
-                        if (!CollectionUtils.isEmpty(role.getPermissions()))
-                            role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
-                    }
-            );
-
+                stringJoiner.add("ROLE_" + role.getName());
+                if (!CollectionUtils.isEmpty(role.getPermissions()))
+                    role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+            });
         }
         return stringJoiner.toString();
     }
@@ -137,14 +134,17 @@ public class AuthenticationService {
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
         try {
             // need check time expiry along with time refresh token
-            // when implement required logout will always save InvalidToken Entity to DB and don't care getExpirationTime() method,
+            // when implement required logout will always save InvalidToken Entity to DB and don't care
+            // getExpirationTime() method,
             // if not save ->  user have a token -> using this token to refresh a new token -> not security
-            // no need check getExpirationTime() method, only check time refresh token -> because time refresh token always before now time
+            // no need check getExpirationTime() method, only check time refresh token -> because time refresh token
+            // always before now time
             // -> not cause exception by verifyToken() method -> always save InvalidToken Entity to DB
             var signToken = verifyToken(request.getToken(), true);
             String jit = signToken.getJWTClaimsSet().getJWTID();
             Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
-            InvalidateToken invalidateToken = InvalidateToken.builder().id(jit).expiryTime(expiryTime).build();
+            InvalidateToken invalidateToken =
+                    InvalidateToken.builder().id(jit).expiryTime(expiryTime).build();
             invalidateRepository.save(invalidateToken);
         } catch (AppException e) {
             log.info("token already expired ");
@@ -156,11 +156,18 @@ public class AuthenticationService {
         SignedJWT signedJWT = SignedJWT.parse(token);
 
         var verified = signedJWT.verify(jwsVerifier);
-        // this mean (within REFRESHABLE_DURATION since create token  must implement refresh token), if not refresh = expiration -> login again
-        // user using task along with token -> error authentication (invalid token by expiration token)-> refresh token -> be able to implement task
+        // this mean (within REFRESHABLE_DURATION since create token  must implement refresh token), if not refresh =
+        // expiration -> login again
+        // user using task along with token -> error authentication (invalid token by expiration token)-> refresh token
+        // -> be able to implement task
         // -> if refresh not successful -> this mean beyond refresh token time -> login again
         Date expiryTime = (isRefresh)
-                ? new Date(signedJWT.getJWTClaimsSet().getIssueTime().toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli())
+                ? new Date(signedJWT
+                        .getJWTClaimsSet()
+                        .getIssueTime()
+                        .toInstant()
+                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                        .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
         signedJWT.getJWTClaimsSet().getExpirationTime();
         if (!verified && expiryTime.after(new Date())) {
@@ -180,19 +187,13 @@ public class AuthenticationService {
         var expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
 
         // to do current token expiry -> token invalid
-        invalidateRepository.save(InvalidateToken.builder()
-                .id(jit)
-                .expiryTime(expiryTime)
-                .build());
+        invalidateRepository.save(
+                InvalidateToken.builder().id(jit).expiryTime(expiryTime).build());
         var username = signedJWT.getJWTClaimsSet().getSubject();
-        var user = userRepository.findByUsername(username).orElseThrow(
-                () -> new AppException(ErrorCode.UNAUTHENTICATED)
-        );
+        var user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
         var token = generateToken(user);
 
-        return AuthenticationResponse.builder()
-                .token(token)
-                .authenticated(true)
-                .build();
+        return AuthenticationResponse.builder().token(token).authenticated(true).build();
     }
 }
