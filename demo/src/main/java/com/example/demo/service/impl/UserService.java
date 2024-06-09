@@ -1,19 +1,5 @@
 package com.example.demo.service.impl;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.example.demo.dto.request.UserCreateRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.UserResponse;
@@ -24,10 +10,23 @@ import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.IServiceCRUD;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
 
 @Service
 // DI bằng constructor
@@ -69,13 +68,18 @@ public class UserService implements IServiceCRUD<User, UserCreateRequest, UserRe
     // security
     public UserResponse createEntity(UserCreateRequest usercreateRequest) {
 
-        if (userRepository.existsByUsername(usercreateRequest.getUsername()))
-            throw new AppException(ErrorCode.USER_EXIST);
+//        if (userRepository.existsByUsername(usercreateRequest.getUsername()))
+//            throw new AppException(ErrorCode.USER_EXIST); // -> because we already unique in User Entity -> no need check user exist in db
         User user = userMapper.toUser(usercreateRequest);
         var roles = roleRepository.findAllById(usercreateRequest.getRoles());
         user.setPassword(passwordEncoder.encode(usercreateRequest.getPassword()));
         user.setRoles(new HashSet<>(roles));
-        return userMapper.toUserResponse(userRepository.save(user));
+        try {
+            user = userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new AppException(ErrorCode.USER_EXIST); // instead of check user exist as above , we using try catch exception, give this check task for dbms
+        }
+        return userMapper.toUserResponse(user);
     }
 
     @Override

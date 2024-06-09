@@ -1,12 +1,11 @@
 package com.example.demo.entity;
 
-import java.time.LocalDate;
-import java.util.Set;
-
 import jakarta.persistence.*;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -20,7 +19,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
+    @Column(name = "username", unique = true, columnDefinition = "varchar(255) COLLATE utf8mb4_unicode_ci")
+    // attribute unique is true (not duplicate) , discern upperCase or lowerCase
+    // -> (using "columnDefinition = dataType, COLLATE utf8_unicode_ci (if same -> save,to not discern up and lowerCase) ,")
     String username;
+    //-> this mean if username = "tri" exists in db -> not save username ="Tri" or username = "TRI")
     String password;
     String firstName;
     String lastName;
