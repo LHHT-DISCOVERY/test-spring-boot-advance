@@ -1,5 +1,8 @@
 package com.example.demo.configuration;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -11,10 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -90,5 +92,18 @@ public class SecurityConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        // Cros only permitted call from the specific resource (do main)-> implement type preflight first -> then call fetch.
+        // seen F12 -> network
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.addAllowedOrigin("http://localhost:3000"); // allow http://localhost:3000 to access
+        corsConfiguration.addAllowedMethod("*"); // allow method access, access all methods
+        corsConfiguration.addExposedHeader("*"); // allow header access, access all headers
+        UrlBasedCorsConfigurationSource urlBasedCors = new UrlBasedCorsConfigurationSource();
+        urlBasedCors.registerCorsConfiguration("/**", corsConfiguration); // apply cors for all endpoints
+        return new CorsFilter(urlBasedCors);
     }
 }
